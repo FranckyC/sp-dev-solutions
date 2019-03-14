@@ -1,6 +1,6 @@
 import * as React from                                                 'react';
-import IFilterPanelProps from                                          './IHorizontalProps';
-import IFilterPanelState from                                          './IHorizontalState';
+import IVerticalProps from                                          './IVerticalProps';
+import IVerticalState from                                          './IVerticalState';
 import { Checkbox } from                                               'office-ui-fabric-react/lib/Checkbox';
 import { Text } from                                                   '@microsoft/sp-core-library';
 import * as update from                                                'immutability-helper';
@@ -10,13 +10,13 @@ import {
     IGroupDividerProps
 } from                                                                 'office-ui-fabric-react/lib/components/GroupedList/index';
 import {Link} from 'office-ui-fabric-react';
-import styles from './Horizontal.module.scss';
+import styles from './Vertical.module.scss';
 import * as strings from 'SearchRefinersWebPartStrings';
 import { IRefinementValue, IRefinementFilter } from '../../../../../models/ISearchResult';
 
-export default class Horizontal extends React.Component<IFilterPanelProps, IFilterPanelState> {
+export default class Vertical extends React.Component<IVerticalProps, IVerticalState> {
 
-    public constructor(props: IFilterPanelProps) {
+    public constructor(props: IVerticalProps) {
         super(props);
 
         this.state = {
@@ -32,7 +32,7 @@ export default class Horizontal extends React.Component<IFilterPanelProps, IFilt
         this._onRenderCell = this._onRenderCell.bind(this);
     }
 
-    public render(): React.ReactElement<IFilterPanelProps> {
+    public render(): React.ReactElement<IVerticalProps> {
 
         let items: JSX.Element[] = [];
         let groups: IGroup[] = [];
@@ -87,7 +87,7 @@ export default class Horizontal extends React.Component<IFilterPanelProps, IFilt
             ref='groupedList'
             items={items}
             onRenderCell={this._onRenderCell}
-            className={styles.horizontalLayout__filterPanel__body__group}
+            className={styles.verticalLayout__filterPanel__body__group}
             groupProps={
                 {
                     onRenderHeader: this._onRenderHeader,
@@ -96,7 +96,7 @@ export default class Horizontal extends React.Component<IFilterPanelProps, IFilt
             groups={groups} /> : noResultsElement;
 
         const renderLinkRemoveAll = this.state.selectedFilters.length > 0 ?
-                                    (<div className={`${styles.horizontalLayout__filterPanel__body__allFiltersToggle} ${this.state.selectedFilters.length === 0 && "hiddenLink"}`}>
+                                    (<div className={`${styles.verticalLayout__filterPanel__body__allFiltersToggle} ${this.state.selectedFilters.length === 0 && "hiddenLink"}`}>
                                     <div className='ms-Grid-row'>
                                         <div className='ms-Grid-col ms-u-sm1 ms-u-md1 ms-u-lg1'>            
                                         </div>
@@ -109,7 +109,7 @@ export default class Horizontal extends React.Component<IFilterPanelProps, IFilt
                                 </div>) : null;
 
         return (
-                <div className={styles.horizontalLayout__filterPanel__body}>
+                <div className={styles.verticalLayout__filterPanel__body}>
                     {renderAvailableFilters}
                     {renderLinkRemoveAll}
                 </div>
@@ -128,7 +128,7 @@ export default class Horizontal extends React.Component<IFilterPanelProps, IFilt
 
     private _onRenderHeader(props: IGroupDividerProps): JSX.Element {
         return (
-            <div className={props.groupIndex > 0 ? styles.horizontalLayout__filterPanel__body__group__header : ''}>
+            <div className={props.groupIndex > 0 ? styles.verticalLayout__filterPanel__body__group__header : ''}>
                 <div className='ms-Grid-row' onClick={() => {
 
                     // Update the index for expanded groups to be able to keep it open after a re-render
@@ -144,7 +144,7 @@ export default class Horizontal extends React.Component<IFilterPanelProps, IFilt
                     props.onToggleCollapse(props.group);
                 }}>
                     <div className='ms-Grid-col ms-u-sm1 ms-u-md1 ms-u-lg1'>
-                        <div className={styles.horizontalLayout__filterPanel__body__headerIcon}>
+                        <div className={styles.verticalLayout__filterPanel__body__headerIcon}>
                             <i className={props.group.isCollapsed ? 'ms-Icon ms-Icon--ChevronDown' : 'ms-Icon ms-Icon--ChevronUp'}></i>
                         </div>
                     </div>
