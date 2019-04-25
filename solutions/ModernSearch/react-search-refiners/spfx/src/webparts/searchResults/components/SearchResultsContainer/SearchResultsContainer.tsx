@@ -175,6 +175,11 @@ export default class SearchResultsContainer extends React.Component<ISearchResul
                     const localizedResults = await this._getLocalizedMetadata(searchResults.RelevantResults);
                     searchResults.RelevantResults = localizedResults;
                 }
+
+                // Enhance result with Office 365 group membership information
+                if (this.props.checkOfficeGroupsMembership) {
+                    searchResults.RelevantResults = await this._getGroupsMembership(searchResults.RelevantResults);
+                }
                 
                 this.setState({
                     results: searchResults,
@@ -231,7 +236,8 @@ export default class SearchResultsContainer extends React.Component<ISearchResul
             || this.props.queryKeywords !== nextProps.queryKeywords
             || this.props.enableLocalization !== nextProps.enableLocalization
             || this.props.rendererId !== nextProps.rendererId
-            || this.props.customTemplateFieldValues !== nextProps.customTemplateFieldValues) {
+            || this.props.customTemplateFieldValues !== nextProps.customTemplateFieldValues
+            || this.props.checkOfficeGroupsMembership !== nextProps.checkOfficeGroupsMembership) {
             executeSearch = true;
             isPageChanged = false;
             selectedPage = 1;
@@ -270,6 +276,11 @@ export default class SearchResultsContainer extends React.Component<ISearchResul
 
                         const localizedResults = await this._getLocalizedMetadata(searchResults.RelevantResults);
                         searchResults.RelevantResults = localizedResults;
+                    }
+
+                    // Enhance result with Office 365 group membership information
+                    if (nextProps.checkOfficeGroupsMembership) {
+                        searchResults.RelevantResults = await this._getGroupsMembership(searchResults.RelevantResults);
                     }
 
                     this.setState({
@@ -649,6 +660,36 @@ export default class SearchResultsContainer extends React.Component<ISearchResul
         } else {
             return rawResults;
         }
+    }
+
+    /**
+     * Enhance search results with Office 365 group membership information
+     * @param rawResults the search results to update
+     */
+    private async _getGroupsMembership(rawResults: ISearchResult[]): Promise<ISearchResult[]> {
+
+        let groupIds = [];
+        let enhancedResults: ISearchResult[] = [];
+
+        // This property is automatically available in search results if an item belongs to an Office 365 group.
+        rawResults.map(result => { 
+            if (result.GroupId) { 
+                groupIds.push(result.GroupId);  
+            }
+        });
+
+        groupIds = await this.props.groupService.checkMembership(groupIds);
+        enhancedResults = rawResults.map(result => {
+            if (groupIds.indexOf(result.GroupId) !== -1) {
+                result.IsGroupMember = 'true';
+            } else {
+                result.IsGroupMember = 'false';
+            }
+
+            return result;
+        });
+
+        return enhancedResults;        
     }
 
     private _getShimmerElements(): JSX.Element {

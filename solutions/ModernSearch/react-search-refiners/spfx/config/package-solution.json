@@ -6,7 +6,17 @@
     "version": "3.4.0.0",
     "includeClientSideAssets": true,
     "skipFeatureDeployment": false,
-    "isDomainIsolated": false
+    "isDomainIsolated": false,
+    "webApiPermissionRequests": [
+      {
+        "resource": "Microsoft Graph",
+        "scope": "User.Read.All"
+      },
+      {
+        "resource": "Microsoft Graph",
+        "scope": "Group.Read.All"
+      }
+    ]
   },
   "paths": {
     "zippedPackage": "solution/pnp-react-search-refiners.sppkg"

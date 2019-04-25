@@ -223,6 +223,7 @@ abstract class BaseTemplateService {
             "ifNth",
             "ifOdd",
             "is",
+            "isEmpty",
             "isnt",
             "lt",
             "lte",

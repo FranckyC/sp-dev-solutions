@@ -56,6 +56,9 @@ import ISynonymTable from '../../models/ISynonym';
 import * as update from 'immutability-helper';
 import ISearchVerticalSourceData from '../../models/ISearchVerticalSourceData';
 import { ISearchVertical } from '../../models/ISearchVertical';
+import IGroupService from '../../services/GroupService/IGroupService';
+import GroupService from '../../services/GroupService/GroupService';
+import MockGroupService from '../../services/GroupService/MockGroupService';
 
 export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchResultsWebPartProps> implements IDynamicDataCallables {
 
@@ -66,6 +69,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
     private _propertyFieldCodeEditor = null;
     private _propertyFieldCodeEditorLanguages = null;
     private _resultService: IResultService;
+    private _groupService: IGroupService;
 
     // Dynamic data related fields
     private _dynamicDataService: IDynamicDataService;
@@ -115,6 +119,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
         let queryTemplate: string = this.properties.queryTemplate;
         let sourceId: string = this.properties.resultSourceId;
         let getVerticalsCounts: boolean = false;
+        let selectedProperties: string[] = this.properties.selectedProperties ? this.properties.selectedProperties.replace(/\s|,+$/g, '').split(',') : [];
 
         let queryDataSourceValue = this._dynamicDataService.getDataSourceValue(this.properties.queryKeywords, this.properties.sourceId, this.properties.propertyId, this.properties.propertyPath);
         if (typeof (queryDataSourceValue) !== 'string') {
@@ -152,6 +157,11 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
             }
         }
 
+        if(this.properties.checkOfficeGroupsMembership) {
+            // Add the 'GroupId' property to get the associated Office 365 Group id value
+            selectedProperties.push('GroupId');
+        }
+
         // Configure the provider before the query according to our needs
         this._searchService = update(this._searchService, {
             resultsCount: { $set: this.properties.maxResultsCount },
@@ -159,7 +169,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
             resultSourceId: { $set: sourceId },
             sortList: { $set: this._convertToSortList(this.properties.sortList) },
             enableQueryRules: { $set: this.properties.enableQueryRules },
-            selectedProperties: { $set: this.properties.selectedProperties ? this.properties.selectedProperties.replace(/\s|,+$/g, '').split(',') : [] },                  
+            selectedProperties: { $set: selectedProperties },                  
             synonymTable: { $set: this._synonymTable }
         });
 
@@ -169,6 +179,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
             {
                 searchService: this._searchService,
                 taxonomyService: this._taxonomyService,
+                groupService: this._groupService,
                 queryKeywords: queryKeywords,
                 sortableFields: this.properties.sortableFields,
                 showPaging: this.properties.showPaging,
@@ -186,6 +197,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                 customTemplateFieldValues: this.properties.customTemplateFieldValues,
                 rendererId: this.properties.selectedLayout as any,
                 enableLocalization: this.properties.enableLocalization,
+                checkOfficeGroupsMembership: this.properties.checkOfficeGroupsMembership,
                 selectedPage: selectedPage,
                 onSearchResultsUpdate: async (results, mountingNodeId, searchService) => {
                     if (this.properties.selectedLayout in ResultsLayoutOption) {
@@ -260,11 +272,15 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
             this._taxonomyService = new MockTaxonomyService();
             this._templateService = new MockTemplateService(this.context.pageContext.cultureInfo.currentUICultureName);
             this._searchService = new MockSearchService();
+            this._groupService = new MockGroupService();
 
         } else {
             this._taxonomyService = new TaxonomyService(this.context.pageContext.site.absoluteUrl);
             this._templateService = new TemplateService(this.context.spHttpClient, this.context.pageContext.cultureInfo.currentUICultureName);
             this._searchService = new SearchService(this.context.pageContext, this.context.spHttpClient);
+
+            const msGraphClient = await this.context.msGraphClientFactory.getClient();
+            this._groupService = new GroupService(msGraphClient);
         }
 
         this._resultService = new ResultService();
@@ -789,6 +805,12 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                 label: strings.EnableLocalizationLabel,
                 onText: strings.EnableLocalizationOnLabel,
                 offText: strings.EnableLocalizationOffLabel
+            }),
+            PropertyPaneToggle('checkOfficeGroupsMembership', {
+                checked: this.properties.checkOfficeGroupsMembership,
+                label: strings.CheckOfficeGroupsMembershipLabel,
+                onText: strings.CheckOfficeGroupsMembershipLabelEnabledLabel,
+                offText: strings.CheckOfficeGroupsMembershipLabelDisabledLabel
             }),
             PropertyFieldCollectionData('synonymList', {
                 manageBtnLabel: strings.Synonyms.EditSynonymLabel,

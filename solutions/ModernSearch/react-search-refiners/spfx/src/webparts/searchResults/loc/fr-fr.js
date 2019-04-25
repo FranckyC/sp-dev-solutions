@@ -107,6 +107,9 @@ define([], function() {
       "GreaterThanOperator": "Supérieur à",
       "LessOrEqualOperator": "Inférieur ou égal",
       "LessThanOperator": "Inférieur"
-    }
+    },
+    "CheckOfficeGroupsMembershipLabel": "Vérifier l'appartenance aux groupes Office 365",
+    "CheckOfficeGroupsMembershipLabelEnabledLabel": "Activé",
+    "CheckOfficeGroupsMembershipLabelDisabledLabel": "Désactivé"
   }
 });

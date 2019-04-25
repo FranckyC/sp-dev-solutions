@@ -109,6 +109,9 @@ declare interface ISearchResultsWebPartStrings {
     UseDefaultSearchQueryKeywordsFieldLabel: string;
     DefaultSearchQueryKeywordsFieldLabel: string;
     DefaultSearchQueryKeywordsFieldDescription: string;
+    CheckOfficeGroupsMembershipLabel: string;
+    CheckOfficeGroupsMembershipLabelEnabledLabel: string;
+    CheckOfficeGroupsMembershipLabelDisabledLabel: string;
 }
 
 declare module 'SearchResultsWebPartStrings' {

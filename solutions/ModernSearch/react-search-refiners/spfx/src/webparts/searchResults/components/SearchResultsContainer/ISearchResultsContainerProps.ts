@@ -7,6 +7,7 @@ import ISortableFieldConfiguration from '../../../../models/ISortableFieldConfig
 import { ISearchResultType } from '../../../../models/ISearchResultType';
 import {ICustomTemplateFieldValue} from '../../../../services/ResultService/ResultService';
 import SearchResultsOperationCallback from '../../../../models/SearchResultsOperationCallback';
+import IGroupService from '../../../../services/GroupService/IGroupService';
 
 interface ISearchResultsContainerProps {
 
@@ -24,6 +25,11 @@ interface ISearchResultsContainerProps {
      * The taxonomy data provider instance
      */
     taxonomyService: ITaxonomyService;
+
+    /**
+     * The Office 365 group service
+     */
+    groupService: IGroupService;
 
     /**
      * The search query keywords
@@ -115,6 +121,11 @@ interface ISearchResultsContainerProps {
      * The selected page to show for the search results
      */
     selectedPage: number;
+
+    /**
+     * Flag indicates if the Web Part should check for Office 365 groups membershp
+     */
+    checkOfficeGroupsMembership: boolean;
 }
 
 export default ISearchResultsContainerProps;
