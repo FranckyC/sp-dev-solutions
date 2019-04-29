@@ -1,6 +1,5 @@
 
 .template_root {
-
     /* Load global variables and mixins for components. Order is important here because we want theming variables from SPFx instead of default */
     @import '~office-ui-fabric/dist/sass/Fabric.scss';
     @import '~@microsoft/sp-office-ui-fabric-core/dist/sass/_SPFabricCore.scss';
