@@ -74,7 +74,8 @@ export default class SearchRefinersWebPart extends BaseClientSideWebPart<ISearch
           },
           selectedLayout: this.properties.selectedLayout,
           language: this.context.pageContext.cultureInfo.currentUICultureName,
-          query: queryKeywords + queryTemplate + selectedProperties + resultSourceId
+          query: queryKeywords + queryTemplate + selectedProperties + resultSourceId,
+          context: this.context
         } as ISearchRefinersContainerProps
       );
     } else {
@@ -195,6 +196,10 @@ export default class SearchRefinersWebPart extends BaseClientSideWebPart<ISearch
               {
                 key: RefinerTemplateOption.DateRange,
                 text: strings.Refiners.Templates.DateRangeRefinementItemLabel,
+              },
+              {
+                key: RefinerTemplateOption.Taxonomy,
+                text: "Taxonomy",
               }
             ]
           },

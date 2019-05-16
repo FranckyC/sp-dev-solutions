@@ -1,6 +1,7 @@
 import { IRefinementResult, IRefinementValue, IRefinementFilter } from "../../../../models/ISearchResult";
 import IRefinerConfiguration from "../../../../models/IRefinerConfiguration";
 import RefinementFilterOperationCallback from "../../../../models/RefinementValueOperationCallback";
+import { IWebPartContext } from "@microsoft/sp-webpart-base";
 
 interface IFilterLayoutProps {
     
@@ -43,6 +44,11 @@ interface IFilterLayoutProps {
      * The current UI language
      */
     language: string;
+
+    /**
+     * The Web Part context
+     */
+    context: IWebPartContext;
 }
   
 export default IFilterLayoutProps;

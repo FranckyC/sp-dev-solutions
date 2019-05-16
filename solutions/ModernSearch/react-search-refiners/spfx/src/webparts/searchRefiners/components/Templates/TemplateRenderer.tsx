@@ -2,8 +2,10 @@ import * as React from                                                 'react';
 import RefinerTemplateOption from '../../../../models/RefinerTemplateOption';
 import CheckboxTemplate from "./Checkbox/CheckboxTemplate";
 import DateRangeTemplate from "./DateRange/DateRangeTemplate";
+import TaxonomyFilterTemplate from "./TaxonomyFilter/TaxonomyPickerTemplate";
 import { IRefinementResult, IRefinementValue } from "../../../../models/ISearchResult";
 import RefinementFilterOperationCallback from '../../../../models/RefinementValueOperationCallback';
+import { IWebPartContext } from '@microsoft/sp-webpart-base';
 
 export interface ITemplateRendererProps {
 
@@ -42,6 +44,11 @@ export interface ITemplateRendererProps {
      * Used to build local state for sub components
      */
     selectedValues: IRefinementValue[];
+
+    /**
+     * The Web Part context
+     */
+    context: IWebPartContext;
 }
 
 export default class TemplateRenderer extends React.Component<ITemplateRendererProps> {
@@ -83,6 +90,16 @@ export default class TemplateRenderer extends React.Component<ITemplateRendererP
                                     removeFilterValue={this.props.valueToRemove}
                                     language={this.props.language}
                                     selectedValues={this.props.selectedValues}
+                                />;
+                break;
+
+            case RefinerTemplateOption.Taxonomy:
+                renderTemplate = <TaxonomyFilterTemplate
+                                    refinementResult={this.props.refinementResult}
+                                    onFilterValuesUpdated={this.props.onFilterValuesUpdated}
+                                    selectedValues={this.props.selectedValues}
+                                    shouldResetFilters={this.props.shouldResetFilters}
+                                    context={this.props.context}
                                 />;
                 break;
 
