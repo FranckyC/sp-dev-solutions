@@ -110,6 +110,8 @@ define([], function () {
     },
     "CheckOfficeGroupsMembershipLabel": "Check for Office 365 groups membership",
     "CheckOfficeGroupsMembershipLabelEnabledLabel": "Enabled",
-    "CheckOfficeGroupsMembershipLabelDisabledLabel": "Disabled"
+    "CheckOfficeGroupsMembershipLabelDisabledLabel": "Disabled",
+    "QueryCultureLabel": "Language of search request",
+    "QueryCultureUseUiLanguageLabel": "Use interface language"
   }
 });

@@ -112,6 +112,8 @@ declare interface ISearchResultsWebPartStrings {
     CheckOfficeGroupsMembershipLabel: string;
     CheckOfficeGroupsMembershipLabelEnabledLabel: string;
     CheckOfficeGroupsMembershipLabelDisabledLabel: string;
+    QueryCultureLabel: string;
+    QueryCultureUseUiLanguageLabel: string;
 }
 
 declare module 'SearchResultsWebPartStrings' {

@@ -110,6 +110,8 @@ define([], function() {
     },
     "CheckOfficeGroupsMembershipLabel": "Vérifier l'appartenance aux groupes Office 365",
     "CheckOfficeGroupsMembershipLabelEnabledLabel": "Activé",
-    "CheckOfficeGroupsMembershipLabelDisabledLabel": "Désactivé"
+    "CheckOfficeGroupsMembershipLabelDisabledLabel": "Désactivé",
+    "QueryCultureLabel": "Query Language",
+    "QueryCultureUseUiLanguageLabel": "Same as UI language"
   }
 });
