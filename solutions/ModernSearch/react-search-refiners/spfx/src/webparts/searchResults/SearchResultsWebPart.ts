@@ -2,7 +2,7 @@
 import * as ReactDom from 'react-dom';
 import { Version, Text, Environment, EnvironmentType, DisplayMode } from '@microsoft/sp-core-library';
 import { BaseClientSideWebPart, IWebPartPropertiesMetadata, IPropertyPaneGroup } from '@microsoft/sp-webpart-base';
-import {     
+import {
     IPropertyPaneConfiguration,
     PropertyPaneTextField,
     PropertyPaneDynamicFieldSet,
@@ -27,7 +27,7 @@ import ISearchService from '../../services/SearchService/ISearchService';
 import ITaxonomyService from '../../services/TaxonomyService/ITaxonomyService';
 import ResultsLayoutOption from '../../models/ResultsLayoutOption';
 import { TemplateService } from '../../services/TemplateService/TemplateService';
-import { isEmpty, find, sortBy, cloneDeep } from '@microsoft/sp-lodash-subset';
+import { isEmpty, find, sortBy, cloneDeep, isEqual } from '@microsoft/sp-lodash-subset';
 import MockSearchService from '../../services/SearchService/MockSearchService';
 import MockTemplateService from '../../services/TemplateService/MockTemplateService';
 import SearchService from '../../services/SearchService/SearchService';
@@ -109,6 +109,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
 
     private _themeProvider: ThemeProvider;
     private _themeVariant: IReadonlyTheme;
+    private _initComplete = false;
 
     /**
      * The available web component definitions (not registered yet)
@@ -127,6 +128,12 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
     }
 
     public async render(): Promise<void> {
+
+        if (!this._initComplete) {
+            // Don't render until all init is complete
+            return;
+        }
+
         // Determine the template content to display
         // In the case of an external template is selected, the render is done asynchronously waiting for the content to be fetched
         await this._initTemplate();
@@ -205,6 +212,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
             resultSourceId: { $set: sourceId },
             sortList: { $set: this._convertToSortList(this.properties.sortList) },
             enableQueryRules: { $set: this.properties.enableQueryRules },
+            includeOneDriveResults: { $set: this.properties.includeOneDriveResults },
             selectedProperties: { $set: this.properties.selectedProperties ? this.properties.selectedProperties.replace(/\s|,+$/g, '').split(',') : [] },
             synonymTable: { $set: this._synonymTable },
             queryCulture: { $set: this.properties.searchQueryLanguage !== -1 ? this.properties.searchQueryLanguage : currentLocaleId },
@@ -366,6 +374,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
         this.context.dynamicDataSourceManager.initializeSource(this);
         this._synonymTable = this._convertToSynonymTable(this.properties.synonymList);
 
+        this._initComplete = true;
         return super.onInit();
     }
 
@@ -455,7 +464,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
      */
     private initializeRequiredProperties() {
 
-        this.properties.queryTemplate = this.properties.queryTemplate ? this.properties.queryTemplate : "{searchTerms} Path:{Site}";
+        this.properties.queryTemplate = this.properties.queryTemplate ? this.properties.queryTemplate : "{searchTerms}";
 
         if (!Array.isArray(this.properties.sortList) && !isEmpty(this.properties.sortList)) {
             this.properties.sortList = this._convertToSortConfig(this.properties.sortList);
@@ -478,7 +487,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
         this.properties.resultTypes = Array.isArray(this.properties.resultTypes) ? this.properties.resultTypes : [];
         this.properties.synonymList = Array.isArray(this.properties.synonymList) ? this.properties.synonymList : [];
         this.properties.searchQueryLanguage = this.properties.searchQueryLanguage ? this.properties.searchQueryLanguage : -1;
-        this.properties.templateParameters = this.properties.templateParameters ? this.properties.templateParameters : {}; 
+        this.properties.templateParameters = this.properties.templateParameters ? this.properties.templateParameters : {};
     }
 
     protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
@@ -490,7 +499,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                 groupName: strings.StylingSettingsGroupName,
                 groupFields: this._getStylingFields(),
                 isCollapsed: false
-            },                        
+            },
         ];
 
         if (templateParametersGroup) {
@@ -504,10 +513,10 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                         description: strings.SearchQuerySettingsGroupName
                     },
                     groups: [
-                        this._getSearchQueryFields()                    
+                        this._getSearchQueryFields()
                     ]
                 },
-                {                   
+                {
                     groups: [
                         {
                             groupFields: this._getSearchSettingsFields(),
@@ -623,6 +632,14 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
             this.properties.selectedProperties = udpatedProperties.join(',');
         }
 
+        // clean out duplicate ones
+        let allProps = this.properties.selectedProperties.split(',');
+        allProps = allProps.filter((item, index) => {
+            return allProps.indexOf(item) === index;
+        });
+        this.properties.selectedProperties = allProps.join(',');
+
+
         if (propertyPath.localeCompare('selectedLayout') === 0) {
             // Refresh setting the right template for the property pane
             if (!this.codeRendererIsSelected()) {
@@ -656,7 +673,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
     }
 
     /**
-    * Save the useful information for the connected data source. 
+    * Save the useful information for the connected data source.
     * They will be used to get the value of the dynamic property if this one fails.
     */
     private _saveDataSourceInfo() {
@@ -713,7 +730,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
     private async _initTemplate(): Promise<void> {
 
         if (this.properties.selectedLayout === ResultsLayoutOption.Custom) {
-            
+
             // Reset options
             this._templatePropertyPaneOptions = [];
 
@@ -729,8 +746,10 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
             this._templatePropertyPaneOptions = this._templateService.getTemplateParameters(this.properties.selectedLayout, this.properties, this._onUpdateAvailableProperties, this._availableManagedProperties);
         }
 
-        // Register result types inside the template      
+        // Register result types inside the template
         this._templateService.registerResultTypes(this.properties.resultTypes);
+
+        await this._templateService.optimizeLoadingForTemplate(this._templateContentToDisplay);
     }
 
     /**
@@ -812,23 +831,23 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                         onCustomRender: (field, value, onUpdate, item, itemId, onCustomFieldValidation) => {
 
                             // Need to specify a React key to avoid item duplication when adding a new row
-                            return React.createElement("div", {key : `${field.id}-${itemId}`},
+                            return React.createElement("div", { key: `${field.id}-${itemId}` },
                                 React.createElement(SearchManagedProperties, {
-                                defaultSelectedKey: item[field.id] ? item[field.id] : '',
-                                onUpdate: (newValue: any, isSortable: boolean) => { 
+                                    defaultSelectedKey: item[field.id] ? item[field.id] : '',
+                                    onUpdate: (newValue: any, isSortable: boolean) => {
 
-                                    if (!isSortable) {
-                                        onCustomFieldValidation(field.id, strings.Sort.SortInvalidSortableFieldMessage);
-                                    } else {
-                                        onUpdate(field.id, newValue);
-                                        onCustomFieldValidation(field.id, '');
-                                    }
-                                },
-                                searchService: this._searchService,
-                                validateSortable: true,
-                                availableProperties: this._availableManagedProperties,
-                                onUpdateAvailableProperties: this._onUpdateAvailableProperties
-                            } as ISearchManagedPropertiesProps));
+                                        if (!isSortable) {
+                                            onCustomFieldValidation(field.id, strings.Sort.SortInvalidSortableFieldMessage);
+                                        } else {
+                                            onUpdate(field.id, newValue);
+                                            onCustomFieldValidation(field.id, '');
+                                        }
+                                    },
+                                    searchService: this._searchService,
+                                    validateSortable: true,
+                                    availableProperties: this._availableManagedProperties,
+                                    onUpdateAvailableProperties: this._onUpdateAvailableProperties
+                                } as ISearchManagedPropertiesProps));
                         }
                     },
                     {
@@ -865,25 +884,25 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                         required: true,
                         onCustomRender: (field, value, onUpdate, item, itemId, onCustomFieldValidation) => {
                             // Need to specify a React key to avoid item duplication when adding a new row
-                            return React.createElement("div", {key : `${field.id}-${itemId}`},
+                            return React.createElement("div", { key: `${field.id}-${itemId}` },
                                 React.createElement(SearchManagedProperties, {
-                                defaultSelectedKey: item[field.id] ? item[field.id] : '',
-                                onUpdate: (newValue: any, isSortable: boolean) => { 
+                                    defaultSelectedKey: item[field.id] ? item[field.id] : '',
+                                    onUpdate: (newValue: any, isSortable: boolean) => {
 
-                                    if (!isSortable) {
-                                        onCustomFieldValidation(field.id, strings.Sort.SortInvalidSortableFieldMessage);
-                                    } else {
-                                        onUpdate(field.id, newValue);
-                                        onCustomFieldValidation(field.id, '');
-                                    }
-                                },
-                                searchService: this._searchService,
-                                validateSortable: true,
-                                availableProperties: this._availableManagedProperties,
-                                onUpdateAvailableProperties: this._onUpdateAvailableProperties
-                            } as ISearchManagedPropertiesProps));
+                                        if (!isSortable) {
+                                            onCustomFieldValidation(field.id, strings.Sort.SortInvalidSortableFieldMessage);
+                                        } else {
+                                            onUpdate(field.id, newValue);
+                                            onCustomFieldValidation(field.id, '');
+                                        }
+                                    },
+                                    searchService: this._searchService,
+                                    validateSortable: true,
+                                    availableProperties: this._availableManagedProperties,
+                                    onUpdateAvailableProperties: this._onUpdateAvailableProperties
+                                } as ISearchManagedPropertiesProps));
                         }
-                    },                    
+                    },
                     {
                         id: 'displayValue',
                         title: strings.Sort.SortableFieldDisplayValueField,
@@ -903,14 +922,18 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                 label: strings.EnableQueryRulesLabel,
                 checked: this.properties.enableQueryRules,
             }),
+            PropertyPaneToggle('includeOneDriveResults', {
+                label: strings.IncludeOneDriveResultsLabel,
+                checked: this.properties.includeOneDriveResults,
+            }),
             new PropertyPaneSearchManagedProperties('selectedProperties', {
                 label: strings.SelectedPropertiesFieldLabel,
                 description: strings.SelectedPropertiesFieldDescription,
                 allowMultiSelect: true,
                 availableProperties: this._availableManagedProperties,
                 defaultSelectedKeys: this.properties.selectedProperties.split(","),
-                onPropertyChange: (propertyPath: string, newValue: any) => { 
-                    this.properties[propertyPath] = newValue.join(','); 
+                onPropertyChange: (propertyPath: string, newValue: any) => {
+                    this.properties[propertyPath] = newValue.join(',');
                     this.onPropertyPaneFieldChanged(propertyPath);
 
                     // Refresh the WP with new selected properties
@@ -996,7 +1019,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
     }
 
     /**
-     * Make sure the dynamic property is correctly connected to the source if a search refiner component has been selected in options 
+     * Make sure the dynamic property is correctly connected to the source if a search refiner component has been selected in options
      */
     private ensureDataSourceConnection() {
 
@@ -1132,7 +1155,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
      */
     private _getStylingFields(): IPropertyPaneField<any>[] {
 
-        // Options for the search results layout 
+        // Options for the search results layout
         const layoutOptions = [
             {
                 iconProps: {
@@ -1267,17 +1290,17 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                             required: true,
                             onCustomRender: (field, value, onUpdate, item, itemId, onCustomFieldValidation) => {
                                 // Need to specify a React key to avoid item duplication when adding a new row
-                                return React.createElement("div", {key : itemId},
-                                React.createElement(SearchManagedProperties, {
-                                defaultSelectedKey: item[field.id] ? item[field.id] : '',
-                                onUpdate: (newValue: any, isSortable: boolean) => { 
-                                    onUpdate(field.id, newValue);
-                                },
-                                searchService: this._searchService,
-                                validateSortable: false,
-                                availableProperties: this._availableManagedProperties,
-                                onUpdateAvailableProperties: this._onUpdateAvailableProperties
-                                } as ISearchManagedPropertiesProps));
+                                return React.createElement("div", { key: itemId },
+                                    React.createElement(SearchManagedProperties, {
+                                        defaultSelectedKey: item[field.id] ? item[field.id] : '',
+                                        onUpdate: (newValue: any, isSortable: boolean) => {
+                                            onUpdate(field.id, newValue);
+                                        },
+                                        searchService: this._searchService,
+                                        validateSortable: false,
+                                        availableProperties: this._availableManagedProperties,
+                                        onUpdateAvailableProperties: this._onUpdateAvailableProperties
+                                    } as ISearchManagedPropertiesProps));
                             }
                         },
                         {
@@ -1431,7 +1454,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
                 isCollapsed: false,
                 groupName: strings.TemplateParameters.TemplateParametersGroupName
             };
-        } 
+        }
 
         return templateFieldsGroup;
     }
@@ -1500,7 +1523,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
         // Save the value in the root Web Part class to avoid fetching it again if the property list is requested again by any other property pane control
         this._availableManagedProperties = cloneDeep(properties);
 
-        // Refresh all fields so other property controls can use the new list 
+        // Refresh all fields so other property controls can use the new list
         this.context.propertyPane.refresh();
         this.render();
     }
@@ -1524,7 +1547,10 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
      * @param args The new theme
      */
     private _handleThemeChangedEvent(args: ThemeChangedEventArgs): void {
-        this._themeVariant = args.theme;
-        this.render();
+        
+        if (!isEqual(this._themeVariant, args.theme)) {
+            this._themeVariant = args.theme;
+            this.render();
+        }
     }
 }
