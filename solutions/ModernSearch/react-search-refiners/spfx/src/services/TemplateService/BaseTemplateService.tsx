@@ -10,17 +10,8 @@ import { DomHelper } from '../../helpers/DomHelper';
 import { ISearchResultType, ResultTypeOperator } from '../../models/ISearchResultType';
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
-import PreviewContainer from './PreviewContainer/PreviewContainer';
-import { IPreviewContainerProps, PreviewType } from './PreviewContainer/IPreviewContainerProps';
-import { DocumentCardWebComponent } from './components/DocumentCard';
-import { DetailsListWebComponent } from './components/DetailsList';
-import { VideoCardWebComponent } from './components/VideoCard';
-import { DebugViewWebComponent } from './components/debugView';
-import { SliderWebComponent } from './components/slider';
-import { LivePersonaWebComponent } from './components/livepersona';
-import { PersonaCardWebComponent } from './components/personacard';
-import { DocumentCardShimmersWebComponent } from './components/shimmers/DocumentCardShimmers';
-import { PersonaCardShimmersWebComponent } from './components/shimmers/PersonaCardShimmers';
+import PreviewContainer from '../../controls/PreviewContainer/PreviewContainer';
+import { IPreviewContainerProps, PreviewType } from '../../controls/PreviewContainer/IPreviewContainerProps';
 import { IPropertyPaneField } from '@microsoft/sp-property-pane';
 import ResultsLayoutOption from '../../models/ResultsLayoutOption';
 import { ISearchResultsWebPartProps } from '../../webparts/searchResults/ISearchResultsWebPartProps';
@@ -28,6 +19,7 @@ import { IComboBoxOption } from 'office-ui-fabric-react/lib/ComboBox';
 import { IComponentFieldsConfiguration } from './TemplateService';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import { ThemeProvider, IReadonlyTheme } from '@microsoft/sp-component-base';
+import { IComponentDefinition } from '../ExtensibilityService/IComponentDefinition';
 
 abstract class BaseTemplateService {
 
@@ -48,9 +40,6 @@ abstract class BaseTemplateService {
 
         // Registers all helpers
         this.registerTemplateServices();
-
-        // Register web components
-        this.registerWebComponents();
 
         this.DayLightSavings = this.isDST();
     }
@@ -114,25 +103,25 @@ abstract class BaseTemplateService {
         switch (layout) {
 
             case ResultsLayoutOption.SimpleList:
-                return require('./templates/layouts/simple-list.html');
+                return require('../../templates/layouts/simple-list.html');
 
             case ResultsLayoutOption.DetailsList:
-                return require('./templates/layouts/details-list.html');
+                return require('../../templates/layouts/details-list.html');
 
             case ResultsLayoutOption.Tiles:
-                return require('./templates/layouts/tiles.html');
+                return require('../../templates/layouts/tiles.html');
 
             case ResultsLayoutOption.People:
-                return require('./templates/layouts/people.html');
+                return require('../../templates/layouts/people.html');
 
             case ResultsLayoutOption.Slider:
-                return require('./templates/layouts/slider.html');
+                return require('../../templates/layouts/slider.html');
 
             case ResultsLayoutOption.Debug:
-                return require('./templates/layouts/debug.html');
+                return require('../../templates/layouts/debug.html');
 
             case ResultsLayoutOption.Custom:
-                return require('./templates/layouts/default.html');
+                return require('../../templates/layouts/default.html');
 
             default:
                 return null;
@@ -144,7 +133,7 @@ abstract class BaseTemplateService {
      * @returns the template HTML markup
      */
     public static getDefaultResultTypeListItem(): string {
-        return require('./templates/resultTypes/default_list.html');
+        return require('../../templates/resultTypes/default_list.html');
     }
 
     /**
@@ -152,7 +141,7 @@ abstract class BaseTemplateService {
      * @returns the template HTML markup
      */
     public static getDefaultResultTypeTileItem(): string {
-        return require('./templates/resultTypes/default_tile.html');
+        return require('../../templates/resultTypes/default_tile.html');
     }
 
     /**
@@ -160,7 +149,7 @@ abstract class BaseTemplateService {
      * @returns the template HTML markup
      */
     public static getDefaultResultTypeCustomItem(): string {
-        return require('./templates/resultTypes/default_custom.html');
+        return require('../../templates/resultTypes/default_custom.html');
     }
 
     /**
@@ -353,46 +342,7 @@ abstract class BaseTemplateService {
     /**
      * Registers web components on the current page to be able to use them in the Handlebars template
      */
-    private registerWebComponents() {
-
-        const webComponents = [
-            {
-                name: 'document-card',
-                class: DocumentCardWebComponent
-            },
-            {
-                name: 'document-card-shimmers',
-                class: DocumentCardShimmersWebComponent
-            },
-            {
-                name: 'details-list',
-                class: DetailsListWebComponent
-            },
-            {
-                name: 'video-card',
-                class: VideoCardWebComponent
-            },
-            {
-                name: 'debug-view',
-                class: DebugViewWebComponent
-            },
-            {
-                name: 'slider-component',
-                class: SliderWebComponent
-            },
-            {
-                name: 'persona-card',
-                class: PersonaCardWebComponent
-            },
-            {
-                name: 'persona-card-shimmers',
-                class: PersonaCardShimmersWebComponent
-            },
-            {
-                name: 'live-persona',
-                class: LivePersonaWebComponent
-            }
-        ];
+    public registerWebComponents(webComponents: IComponentDefinition<any>[]) {
 
         // Added theme variant to be available in components
         const themeProvider = this._ctx.serviceScope.consume(ThemeProvider.serviceKey);
@@ -400,20 +350,20 @@ abstract class BaseTemplateService {
 
         // Registers custom HTML elements
         webComponents.map(wc => {
-            if (!customElements.get(wc.name)) {
+            if (!customElements.get(wc.componentName)) {
                 // Set the arbitrary property to all instances to get the WebPart context available in components (ex: PersonaCard)
-                wc.class.prototype._ctx = this._ctx;
-                wc.class.prototype._themeVariant = themeVariant;
-                customElements.define(wc.name, wc.class);
+                wc.componentClass.prototype._ctx = this._ctx;
+                wc.componentClass.prototype._themeVariant = themeVariant;
+                customElements.define(wc.componentName, wc.componentClass);
             }
         });
 
         // Register slider component as partial 
-        let sliderTemplate = Handlebars.compile(`<slider-component items="{{items}}" options="{{options}}" template="{{@partial-block}}"></slider-component>`);
+        let sliderTemplate = Handlebars.compile(`<pnp-slider-component items="{{items}}" options="{{options}}" template="{{@partial-block}}"></pnp-slider-component>`);
         Handlebars.registerPartial('slider', sliderTemplate);
 
         // Register live persona wrapper as partial
-        let livePersonaTemplate = Handlebars.compile(`<live-persona upn="{{upn}}" disable-hover="{{disableHover}}" template="{{@partial-block}}"></live-persona>`);
+        let livePersonaTemplate = Handlebars.compile(`<pnp-live-persona upn="{{upn}}" disable-hover="{{disableHover}}" template="{{@partial-block}}"></live-persona>`);
         Handlebars.registerPartial('livepersona', livePersonaTemplate);
     }
 
