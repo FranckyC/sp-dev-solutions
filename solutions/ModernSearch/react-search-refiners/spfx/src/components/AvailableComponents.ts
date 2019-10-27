@@ -7,6 +7,7 @@ import { SliderWebComponent } from './SliderComponent';
 import { PersonaCardWebComponent } from './PersonaCardComponent';
 import { LivePersonaWebComponent } from './LivePersonaComponent';
 import { PersonaCardShimmersWebComponent } from './PersonaCardShimmersComponent';
+import { IconWebComponent } from './IconComponent';
 
 export class AvailableComponents {
 
@@ -49,6 +50,10 @@ export class AvailableComponents {
         {
             componentName: 'pnp-live-persona',
             componentClass: LivePersonaWebComponent
+        },
+        {
+            componentName: 'pnp-fabric-icon',
+            componentClass: IconWebComponent
         }
     ];
 }
