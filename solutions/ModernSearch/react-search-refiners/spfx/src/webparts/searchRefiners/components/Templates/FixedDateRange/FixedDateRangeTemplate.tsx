@@ -108,6 +108,11 @@ export default class FixedDateRangeTemplate extends React.Component<IFixedDateRa
                 options={options}
                 onChange={this._onChange}
                 ariaLabelledBy={labelId}
+                styles={{
+                    root: {
+                        paddingLeft: 10
+                    }
+                }}
             />
         </div>;
     }
