@@ -17,7 +17,7 @@ The custom web components are defined in a SharePoint Framework project of type 
 
 # Create a custom web component
 
-A web component is a custom HTML element that can be used in your templates to implement complex behaviors. We used them here as *"wrappers"* for React components to be able to use them with Handlebars. In this solution, web components are considered **stateless*, meaning they will be entirely recreated when an attribute is changed (coming from the property pane). It means you can still use an inner state in your React components but not rely on the parent context (props) since it will be recreated every time by the Handlebars template.
+A web component is a custom HTML element that can be used in your templates to implement complex behaviors. We used them here as *"wrappers"* for React components to be able to use them with Handlebars. In this solution, web components are considered **stateless**, meaning they will be entirely recreated when an attribute is changed (coming from the property pane). It means you can still use an inner state in your React components but not rely on the parent context (props) since it will be recreated every time by the Handlebars template.
 
 To create a custom component, follow this procedure:
 
@@ -68,7 +68,7 @@ To create a custom component, follow this procedure:
             }
         }
 
-    Because `props` will be passed from an HTML template, they must to use always a `string` type. For complex objects, you will need to pass them as 'stringified' then use the JSON.parse() method to use them in your component logic.
+    Because `props` will be passed from an HTML template, they must to use always a `string` type. For complex objects, you will need to pass them as 'stringified' then use the `JSON.parse()` method to use them in your component logic.
 
 3. In the same file, create an other class, this time to define your web component by inheriting the `BaseWebComponent` abstact class`:
 

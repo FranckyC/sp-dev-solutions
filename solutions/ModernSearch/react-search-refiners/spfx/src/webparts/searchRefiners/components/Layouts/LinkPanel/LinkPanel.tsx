@@ -16,8 +16,7 @@ import {ActionButton} from 'office-ui-fabric-react/lib/Button';
 import styles from './LinkPanel.module.scss';
 import * as strings from 'SearchRefinersWebPartStrings';
 import TemplateRenderer from '../../Templates/TemplateRenderer';
-import { IRefinementResult, IRefinementValue } from '../../../../../models/ISearchResult';
-import IRefinerConfiguration from '../../../../../models/IRefinerConfiguration';
+import { IRefinementValue } from '../../../../../models/ISearchResult';
 import IFilterLayoutProps from '../IFilterLayoutProps';
 import { isEqual } from '@microsoft/sp-lodash-subset';
 
@@ -151,7 +150,7 @@ export default class LinkPanel extends React.Component<ILinkPanelProps, ILinkPan
         this._groupedList.forceUpdate();  
     }
 
-    private _onRenderCell(nestingDepth: number, item: any, itemIndex: number) {
+    private _onRenderCell(item: any, itemIndex: number) {
         return (
             <div className={styles.linkPanelLayout__filterPanel__body__group__item} data-selection-index={itemIndex}>
                 {item}

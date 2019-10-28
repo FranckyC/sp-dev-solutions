@@ -12,7 +12,7 @@ class MockTemplateService extends BaseTemplateService {
         this.CurrentLocale = locale;
     }
 
-    private readonly _mockFileContent: string = require('./templates/layouts/mock.html');
+    private readonly _mockFileContent: string = require('../../templates/layouts/mock.html');
 
     public getFileContent(fileUrl: string): Promise<string> {
 
