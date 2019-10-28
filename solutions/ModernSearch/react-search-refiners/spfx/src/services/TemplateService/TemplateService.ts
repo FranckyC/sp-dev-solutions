@@ -4,14 +4,14 @@ import ISearchService from '../SearchService/ISearchService';
 import ResultsLayoutOption from '../../models/ResultsLayoutOption';
 import { ISearchResultsWebPartProps } from '../../webparts/searchResults/ISearchResultsWebPartProps';
 import { IPropertyPaneField, PropertyPaneToggle, PropertyPaneSlider } from '@microsoft/sp-property-pane';
-import { IDetailsListColumnConfiguration } from './DetailsListComponent/DetailsListComponent';
+import { IDetailsListColumnConfiguration } from '../../components/DetailsListComponent';
 import { PropertyFieldCollectionData, CustomCollectionFieldType } from '@pnp/spfx-property-controls/lib/PropertyFieldCollectionData';
 import * as React from 'react';
 import { TemplateValueFieldEditor, ITemplateValueFieldEditorProps } from '../../controls/TemplateValueFieldEditor/TemplateValueFieldEditor';
 import * as strings from 'SearchResultsWebPartStrings';
 import { IComboBoxOption } from 'office-ui-fabric-react/lib/ComboBox';
 import { Icon, IIconProps } from 'office-ui-fabric-react/lib/Icon';
-import { ISliderOptions } from './SliderComponent/SliderComponent';
+import { ISliderOptions } from '../../components/SliderComponent';
 import { cloneDeep } from '@microsoft/sp-lodash-subset';
 import { WebPartContext, PropertyPaneChoiceGroup } from '@microsoft/sp-webpart-base';
 

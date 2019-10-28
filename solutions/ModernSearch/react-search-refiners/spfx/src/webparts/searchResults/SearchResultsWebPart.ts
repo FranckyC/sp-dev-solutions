@@ -58,12 +58,17 @@ import { IDropdownOption } from 'office-ui-fabric-react/lib/Dropdown';
 import { IComboBoxOption } from 'office-ui-fabric-react/lib/ComboBox';
 import { SearchManagedProperties, ISearchManagedPropertiesProps } from '../../controls/SearchManagedProperties/SearchManagedProperties';
 import { PropertyPaneSearchManagedProperties } from '../../controls/PropertyPaneSearchManagedProperties/PropertyPaneSearchManagedProperties';
+import { ExtensibilityService } from '../../services/ExtensibilityService/ExtensibilityService';
+import IExtensibilityService from '../../services/ExtensibilityService/IExtensibilityService';
+import { IComponentDefinition } from '../../services/ExtensibilityService/IComponentDefinition';
+import { AvailableComponents } from '../../components/AvailableComponents';
 
 export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchResultsWebPartProps> implements IDynamicDataCallables {
 
     private _searchService: ISearchService;
     private _taxonomyService: ITaxonomyService;
     private _templateService: BaseTemplateService;
+    private _extensibilityService: IExtensibilityService;
     private _textDialogComponent = null;
     private _propertyFieldCodeEditor = null;
     private _placeholder = null;
@@ -105,6 +110,11 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
     private _themeProvider: ThemeProvider;
     private _themeVariant: IReadonlyTheme;
     private _initComplete = false;
+
+    /**
+     * The available web component definitions (not registered yet)
+     */
+    private availableWebComponentDefinitions: IComponentDefinition<any>[] = AvailableComponents.BuiltinComponents;
 
     public constructor() {
         super();
@@ -331,6 +341,7 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
         }
 
         this._resultService = new ResultService();
+        this._extensibilityService = new ExtensibilityService();
         this._codeRenderers = this._resultService.getRegisteredRenderers();
         this._dynamicDataService = new DynamicDataService(this.context.dynamicDataProvider);
         this._verticalsInformation = [];
@@ -343,8 +354,21 @@ export default class SearchResultsWebPart extends BaseClientSideWebPart<ISearchR
             this.context.dynamicDataProvider.registerAvailableSourcesChanged(this.render);
         }
 
+        // Load extensibility library if present
+        const extensibilityLibrary = await this._extensibilityService.loadExtensibilityLibrary();
+
+        // Load extensibility additions
+        if (extensibilityLibrary) {
+            
+            // Add custom web components if any
+            this.availableWebComponentDefinitions = this.availableWebComponentDefinitions.concat(extensibilityLibrary.getCustomWebComponents());          
+        }
+        
         // Set the default search results layout
         this.properties.selectedLayout = (this.properties.selectedLayout !== undefined && this.properties.selectedLayout !== null) ? this.properties.selectedLayout : ResultsLayoutOption.DetailsList;
+
+        // Registers web components 
+        this._templateService.registerWebComponents(this.availableWebComponentDefinitions);
 
         this.context.dynamicDataSourceManager.initializeSource(this);
         this._synonymTable = this._convertToSynonymTable(this.properties.synonymList);
