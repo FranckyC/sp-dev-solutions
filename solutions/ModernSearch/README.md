@@ -1,4 +1,4 @@
-# SharePoint Framework modern search Web Parts
+# PnP Modern Search solution
 
 ![Version](https://img.shields.io/badge/version-3.6.0-green.svg)
 

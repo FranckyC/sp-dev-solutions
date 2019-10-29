@@ -13,6 +13,7 @@
                     <pnp-fabric-icon file-extension='{{IconExt}}' image-url='{{SiteLogo}}'></pnp-fabric-icon>
                     <div class="template_contentContainer">
                         <span class="template_title"><a href="{{getUrl item}}">{{Title}}</a></span>
+                        <my-custom-component my-string-param="{{Title}} (from custom component)"></my-custom-component>
                         <span>{{getSummary HitHighlightedSummary}}</span>
                         <span>{{getDate Created "LL"}}</span>
                         <div class="template_tags">
